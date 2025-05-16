@@ -8,7 +8,7 @@ const ApparatList = ({ apparatlar }) => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">
-          Vending Apparatlar ({apparatlar?.length})
+          Vending Apparatlar ({apparatlar.length})
         </h2>
         <Link
           to="/apparat/yangi"
