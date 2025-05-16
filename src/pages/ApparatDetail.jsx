@@ -13,6 +13,7 @@ const ApparatDetail = () => {
   const [apparat, setApparat] = useState(null);
   const [loading, setLoading] = useState(true);
   const [qogozSoni, setQogozSoni] = useState("");
+  const [qoshishRejimi, setQoshishRejimi] = useState(true); // true=qo'shish, false=o'rnatish
   const [davr, setDavr] = useState("kun");
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,7 +36,7 @@ const ApparatDetail = () => {
           kamQogozChegarasi: response.data.malumot.kamQogozChegarasi,
           holati: response.data.malumot.holati,
         });
-        setQogozSoni(response.data.malumot.joriyQogozSoni.toString());
+        setQogozSoni("");
         setLoading(false);
       } catch (error) {
         console.error("Apparat ma'lumotlarini olishda xatolik:", error);
@@ -55,17 +56,51 @@ const ApparatDetail = () => {
       return;
     }
 
+    const sonInt = parseInt(qogozSoni);
+
+    if (qoshishRejimi) {
+      // Qo'shish rejimida maksimal sig'imni tekshirish
+      const yangiJami = apparat.joriyQogozSoni + sonInt;
+      if (yangiJami > apparat.qogozSigimi) {
+        toast.error(
+          `Maksimal sig'im ${apparat.qogozSigimi} varaq. Siz ko'pi bilan ${
+            apparat.qogozSigimi - apparat.joriyQogozSoni
+          } varaq qo'sha olasiz.`
+        );
+        return;
+      }
+    } else {
+      // O'rnatish rejimida maksimal sig'imni tekshirish
+      if (sonInt > apparat.qogozSigimi) {
+        toast.error(
+          `Maksimal sig'im ${apparat.qogozSigimi} varaq. Siz ko'pi bilan ${apparat.qogozSigimi} varaq o'rnata olasiz.`
+        );
+        return;
+      }
+    }
+
     try {
-      const sonInt = parseInt(qogozSoni);
-      await api.put(`/vending-apparat/${id}/qogoz`, { soni: sonInt });
-      toast.success("Qog'oz soni muvaffaqiyatli yangilandi");
+      const response = await api.put(`/vending-apparat/${id}/qogoz`, {
+        soni: sonInt,
+        add: qoshishRejimi, // qo'shish rejimi=true, o'rnatish rejimi=false
+      });
+
+      toast.success(
+        `Qog'oz soni muvaffaqiyatli ${
+          qoshishRejimi ? "qo'shildi" : "o'rnatildi"
+        }`
+      );
 
       // Apparat ma'lumotlarini yangilash
       setApparat({
         ...apparat,
-        joriyQogozSoni: sonInt,
+        joriyQogozSoni: qoshishRejimi
+          ? apparat.joriyQogozSoni + sonInt
+          : sonInt,
         oxirgiToladirishVaqti: new Date(),
       });
+
+      setQogozSoni(""); // Inputni tozalash
     } catch (error) {
       console.error("Qog'oz sonini yangilashda xatolik:", error);
       toast.error("Qog'oz sonini yangilashda xatolik yuz berdi");
@@ -285,7 +320,7 @@ const ApparatDetail = () => {
                     Joriy qog'oz soni: {apparat.joriyQogozSoni} /{" "}
                     {apparat.qogozSigimi}
                   </span>
-                  <span>{Math.round(qogozFoiz)}%</span>
+                  <span>{Math.min(100, Math.round(qogozFoiz))}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
                   <div
@@ -296,7 +331,7 @@ const ApparatDetail = () => {
                         ? "bg-yellow-500"
                         : "bg-green-500"
                     }`}
-                    style={{ width: `${qogozFoiz}%` }}
+                    style={{ width: `${Math.min(100, qogozFoiz)}%` }}
                   ></div>
                 </div>
 
@@ -310,30 +345,89 @@ const ApparatDetail = () => {
                   {new Date(apparat.oxirgiToladirishVaqti).toLocaleString()}
                 </p>
 
-                <form
-                  onSubmit={handleQogozUpdate}
-                  className="flex items-end space-x-2"
-                >
-                  <div className="flex-grow">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Yangi qog'oz soni
+                <div className="bg-blue-100 p-3 rounded-md mb-4">
+                  <p className="text-sm text-blue-800">
+                    Qo'shimcha qo'shish mumkin:{" "}
+                    <span className="font-bold">
+                      {apparat.qogozSigimi - apparat.joriyQogozSoni}
+                    </span>{" "}
+                    varaq
+                  </p>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* Rejimni tanlash */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-medium text-gray-700">
+                      Rejim:
                     </label>
-                    <input
-                      type="number"
-                      value={qogozSoni}
-                      onChange={(e) => setQogozSoni(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md"
-                      min="0"
-                      required
-                    />
+                    <div className="flex border rounded-md overflow-hidden">
+                      <button
+                        type="button"
+                        className={`px-4 py-2 text-sm flex-1 ${
+                          qoshishRejimi
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100"
+                        }`}
+                        onClick={() => setQoshishRejimi(true)}
+                      >
+                        Qo'shish
+                      </button>
+                      <button
+                        type="button"
+                        className={`px-4 py-2 text-sm flex-1 ${
+                          !qoshishRejimi
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100"
+                        }`}
+                        onClick={() => setQoshishRejimi(false)}
+                      >
+                        O'rnatish
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+
+                  {/* Qog'oz soni kiritish */}
+                  <form
+                    onSubmit={handleQogozUpdate}
+                    className="flex-1 flex gap-2"
                   >
-                    Yangilash
-                  </button>
-                </form>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {qoshishRejimi ? "Qo'shiladigan" : "O'rnatiladigan"}{" "}
+                        qog'oz soni:
+                      </label>
+                      <input
+                        type="number"
+                        value={qogozSoni}
+                        onChange={(e) => setQogozSoni(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        min="1"
+                        max={
+                          qoshishRejimi
+                            ? apparat.qogozSigimi - apparat.joriyQogozSoni
+                            : apparat.qogozSigimi
+                        }
+                        placeholder={
+                          qoshishRejimi
+                            ? `Maksimum ${
+                                apparat.qogozSigimi - apparat.joriyQogozSoni
+                              }`
+                            : `Maksimum ${apparat.qogozSigimi}`
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        type="submit"
+                        className="h-10 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                      >
+                        {qoshishRejimi ? "Qo'shish" : "O'rnatish"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
@@ -353,7 +447,6 @@ const ApparatDetail = () => {
           </button>
           <button
             onClick={() => setDavr("hafta")}
-            // src/pages/ApparatDetail.jsx (davomi)
             className={`mr-2 px-4 py-2 rounded ${
               davr === "hafta" ? "bg-blue-500 text-white" : "bg-gray-200"
             }`}

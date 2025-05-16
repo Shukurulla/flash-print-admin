@@ -1,41 +1,121 @@
-// src/App.jsx
+// src/App.jsx (tuzatilgan versiya - Layout komponentini ishlatib)
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { SocketProvider } from "./contexts/SocketContext";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
+import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import ApparatDetail from "./pages/ApparatDetail";
 import ApparatYaratish from "./pages/ApparatYaratish";
 import Statistika from "./pages/Statistika";
 import Sozlamalar from "./pages/Sozlamalar";
 import Notifications from "./components/Notifications";
+import TolovlarPage from "./pages/TolovlarPage";
+import LoginPage from "./pages/LoginPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const App = () => {
   return (
-    <SocketProvider>
-      <Router>
-        <div className="flex">
-          <Sidebar />
-          <div className="ml-64 flex-1">
-            <Header />
-            <main className="pt-20 pb-6 px-6 bg-gray-100 min-h-screen">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/apparatlar" element={<Dashboard />} />
-                <Route path="/apparat/:id" element={<ApparatDetail />} />
-                <Route path="/apparat/yangi" element={<ApparatYaratish />} />
-                <Route path="/statistika" element={<Statistika />} />
-                <Route path="/bildirishnomalar" element={<Notifications />} />
-                <Route path="/sozlamalar" element={<Sozlamalar />} />
-              </Routes>
-            </main>
-          </div>
-        </div>
-        <Toaster position="top-right" />
-      </Router>
-    </SocketProvider>
+    <Router>
+      <SocketProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+
+            {/* Himoyalangan yo'nalishlar */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/apparatlar"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/apparat/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ApparatDetail />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/apparat/yangi"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ApparatYaratish />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/tolovlar"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <TolovlarPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/statistika"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Statistika />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/bildirishnomalar"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Notifications />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/sozlamalar"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Sozlamalar />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+          <Toaster position="top-right" />
+        </AuthProvider>
+      </SocketProvider>
+    </Router>
   );
 };
 

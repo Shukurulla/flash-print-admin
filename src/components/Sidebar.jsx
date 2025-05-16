@@ -7,6 +7,7 @@ import {
   Cog6ToothIcon,
   BellIcon,
   PrinterIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 
 const Sidebar = () => {
@@ -15,11 +16,11 @@ const Sidebar = () => {
   const navigationItems = [
     { name: "Boshqaruv paneli", path: "/", icon: HomeIcon },
     { name: "Vending apparatlar", path: "/apparatlar", icon: PrinterIcon },
+    { name: "To'lovlar", path: "/tolovlar", icon: CurrencyDollarIcon }, // Yangi qo'shildi
     { name: "Statistika", path: "/statistika", icon: ChartBarIcon },
     { name: "Bildirishnomalar", path: "/bildirishnomalar", icon: BellIcon },
     { name: "Sozlamalar", path: "/sozlamalar", icon: Cog6ToothIcon },
   ];
-
   return (
     <div className="w-64 bg-gray-800 text-white h-screen fixed">
       <div className="p-5">
