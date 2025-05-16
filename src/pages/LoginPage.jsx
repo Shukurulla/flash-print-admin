@@ -32,8 +32,8 @@ const LoginPage = () => {
         "Authorization"
       ] = `Bearer ${response.data.malumot.token}`;
 
-      toast.success("Muvaffaqiyatli kirish!");
       navigate("/"); // Bosh sahifaga yo'naltirish
+      toast.success("Muvaffaqiyatli kirish!");
     } catch (error) {
       console.error("Login xatolik:", error);
       toast.error(
